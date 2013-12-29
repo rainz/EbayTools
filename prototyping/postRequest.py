@@ -49,8 +49,8 @@ def postRequestXml():
     print response.text
     #doc = lxml.html.fromstring(response.text)
     
-def postRequest():
-    api = finding(appid='YuZhaob4f-960c-4aed-b5da-7dcf6d18ede')
+def postRequest(myAppId):
+    api = finding(appid=myAppId)
 
     categoryId = 164
     entriesPerPage = 2
@@ -68,4 +68,8 @@ def postRequest():
 
     print api.response_dict()
 
-postRequest()
+if len(sys.argv) < 2:
+  print "Please provide an Ebay app ID!"
+  exit()
+
+postRequest(sys.argv[1])
