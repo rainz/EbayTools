@@ -1,5 +1,3 @@
-#! /usr/bin/python
-
 import requests
 import lxml.html
 from lxml import etree
