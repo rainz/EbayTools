@@ -75,14 +75,29 @@ def priceAnalysis():
     pageNo = 1
     completed = True
     searchStr = ['Q9400 -771']
+    #searchStr = ['i7']
+    buyItNow = False
     requestParams = {'categoryId': str(categoryId),
                      'paginationInput': {'entriesPerPage': str(entriesPerPage),
                                          'pageNumber': str(pageNo)
                                         }, 
                      'keywords': searchStr,
-                     'itemFilter': [
+                     'itemFilter': [{'name': 'Condition',
+                                     'value': ['1000',
+                                               '1500',
+                                               '1750',
+                                               '2000',
+                                               '2500',
+                                               '3000',
+                                               '4000',
+                                               '5000',
+                                               '6000']
+                                    },
                                     {'name': 'LocatedIn',
                                      'value': 'US'
+                                    },
+                                    {'name': 'SoldItemsOnly',
+                                     'value': 'true'
                                     }
                                    ],
                      'outputSelector': 'SellerInfo',
@@ -92,7 +107,12 @@ def priceAnalysis():
         op = 'findCompletedItems'
     else:
         op = 'findItemsAdvanced'
-
+    if buyItNow:
+        requestParams['itemFilter'].append({'name': 'ListingType',
+                                            'value': ['AuctionWithBIN', 
+                                                      'FixedPrice',
+                                                      'StoreInventory']
+                                           })
     prices = []
     totalPages = 1
     while pageNo <= totalPages:
@@ -116,14 +136,21 @@ def priceAnalysis():
         print "Retrieved " + str(retrieved) + " prices for page " + str(pageNo)
         stdout.flush()
         for item in items:
-            sellingState = item['sellingStatus']['sellingState']['value']
-            if sellingState != 'EndedWithSales':
-                continue
+            #sellingState = item['sellingStatus']['sellingState']['value']
+            #if sellingState != 'EndedWithSales':
+            #    print sellingState
+            #    continue
             #country = item['country']['value']
             #if country != 'US':
             #    print "Non-US:", country
             #    continue
-            #pricing = item['sellingStatus']['currentPrice']['value'] + item['sellingStatus']['currentPrice']['currencyId']['value'] 
+            #condition = item['condition']['conditionId']['value']
+            #if condition == "7000":
+            #    print item['condition']['conditionDisplayName']['value']
+            #pricing = item['sellingStatus']['currentPrice']['value'] + item['sellingStatus']['currentPrice']['currencyId']['value']
+            #listingType = item['listingInfo']['listingType']['value']
+            #if not listingType in ['AuctionWithBIN', 'FixedPrice', 'StoreInventory']:
+            #    print listingType, item['viewItemURL']['value']
             itemPrice = item['sellingStatus']['convertedCurrentPrice']['value'];
             itemCurrency = item['sellingStatus']['convertedCurrentPrice']['currencyId']['value']
             pricing = itemPrice + itemCurrency
