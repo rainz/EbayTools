@@ -68,6 +68,87 @@ def findAdvancedRequest(completed=False):
         totalCost = float(itemPrice) + float(shipping)
         print item['title']['value'], '|', item['condition']['conditionDisplayName']['value'], '|', pricing, '|', shipping, '|', seller # , '|', item['viewItemURL']['value']
 
+def getResults(categoryId, searchStr, auction=True, buyItNow=False, bestOffer=False, soldItems=False):
+    entriesPerPage = 50
+    pageNo = 1
+    requestParams = {'categoryId': str(categoryId),
+                     'paginationInput': {'entriesPerPage': str(entriesPerPage),
+                                         'pageNumber': str(pageNo)
+                                        }, 
+                     'keywords': searchStr,
+                     'itemFilter': [{'name': 'Condition',
+                                     'value': ['1000',
+                                               '1500',
+                                               '1750',
+                                               '2000',
+                                               '2500',
+                                               '3000',
+                                               '4000',
+                                               '5000',
+                                               '6000']
+                                    },
+                                    {'name': 'LocatedIn',
+                                     'value': 'US'
+                                    },
+                                   ],
+                     'outputSelector': 'SellerInfo',
+                     'sortOrder': 'EndTimeSoonest'
+                    }
+    if soldItems:
+        op = 'findCompletedItems'
+        requestParams['itemFilter'].append({'name': 'SoldItemsOnly',
+                                             'value': 'true'
+                                           })
+    else:
+        op = 'findItemsAdvanced'
+
+    listTypes = []
+    if auction:
+        listTypes.append('Auction')
+
+    if buyItNow:
+        listTypes.extend(['AuctionWithBIN', 'FixedPrice', 'StoreInventory'])
+    requestParams['itemFilter'].append({'name': 'ListingType',
+                                        'value': listTypes, 
+                                       })
+    if bestOffer:
+        requestParams['itemFilter'].append({'name': 'BestOfferOnly',
+                                            'value': 'true'
+                                           })
+
+    totalPages = 1
+    allItems = []
+    while pageNo <= totalPages:
+        requestParams['paginationInput']['pageNumber'] = str(pageNo)
+        apiFinding.execute(op, requestParams)
+        dictResult = apiFinding.response_dict()
+        
+        if dictResult['ack']['value'] != 'Success':
+            print "Request failed for page", pageNo
+            break
+        
+        totalPages = int(dictResult['paginationOutput']['totalPages']['value'])
+        items = dictResult['searchResult']['item']
+        retrieved = len(items)
+        if retrieved == 0:
+            break
+        allItems.extend(items)
+        #print "Retrieved " + str(retrieved) + " prices for page " + str(pageNo)
+        stdout.flush()
+        pageNo += 1
+
+    return allItems
+
+def testGetResults():
+    results = getResults(CPU_CATEGORY, 'q9400 -771', True, True, False, True)
+    for item in results:
+        sellingState = item['sellingStatus']['sellingState']['value']
+        country = item['country']['value']
+        condition = item['condition']['conditionDisplayName']['value']
+        pricing = item['sellingStatus']['currentPrice']['value'] + item['sellingStatus']['currentPrice']['currencyId']['value']
+        listingType = item['listingInfo']['listingType']['value']
+        print '|'.join([country, condition, pricing, listingType, sellingState])
+    #print "Total: " + str(len(results))
 
 def priceAnalysis():
     categoryId = CPU_CATEGORY
@@ -173,4 +254,5 @@ def priceAnalysis():
 #getPopular(CPU_CATEGORY)
 #print findCountInCategoryRequest(MEM_CATEGORY)
 #getCompletedForCategory(CPU_CATEGORY)
-priceAnalysis()
+#priceAnalysis()
+testGetResults()
