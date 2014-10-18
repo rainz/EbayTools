@@ -4,6 +4,14 @@ from sys import argv, stdout
 from ebaysdk import finding
 from ebaysdk import shopping
 
+import json
+import os.path
+
+home_dir = os.path.expanduser("~")
+
+with open(os.path.join(home_dir, 'ApiKeys/EbayKey.json')) as key_file:    
+    keys = json.load(key_file)
+
 MEM_CATEGORY = 170083
 CPU_CATEGORY = 164
 COMPUTER_PARTS_CATEGORY = 175673
@@ -11,10 +19,6 @@ COMPUTER_PARTS_CATEGORY = 175673
 UTF8Writer = getwriter('utf8')
 stdout = UTF8Writer(stdout)
 
-if len(argv) < 2:
-  print "Please specify an Ebay app ID!"
-  exit()
-
-myAppId = argv[1]
+myAppId = keys['AppId']
 apiFinding = finding(appid=myAppId)
 apiShopping = shopping(appid=myAppId)
